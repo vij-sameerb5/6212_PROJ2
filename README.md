@@ -1,4 +1,5 @@
 # 6212_PROJ2
+Shaik Sameer
 GWID: 9 Huffman Coding 
 
 Here's an overview of the Huffman coding process:
