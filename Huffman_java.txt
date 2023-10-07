@@ -1,0 +1,128 @@
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+class Node implements Comparable<Node> {
+    Character symbol;
+    int frequency;
+    Node left;
+    Node right;
+
+    public Node(Character symbol, int frequency, Node left, Node right) {
+        this.symbol = symbol;
+        this.frequency = frequency;
+        this.left = left;
+        this.right = right;
+    }
+
+    @Override
+    public int compareTo(Node other) {
+        return Integer.compare(this.frequency, other.frequency);
+    }
+}
+
+public class HuffmanCoding {
+
+    public static Node buildHuffmanTree(Map<Character, Integer> symbols) {
+        PriorityQueue<Node> queue = new PriorityQueue<>();
+
+        for (Map.Entry<Character, Integer> entry : symbols.entrySet()) {
+            queue.add(new Node(entry.getKey(), entry.getValue(), null, null));
+        }
+
+        while (queue.size() > 1) {
+            Node left = queue.poll();
+            Node right = queue.poll();
+            Node root = new Node(null, left.frequency + right.frequency, left, right);
+            queue.add(root);
+        }
+
+        return queue.poll();
+    }
+
+    public static Map<Character, String> generateHuffmanCodes(Node root) {
+        Map<Character, String> codes = new HashMap<>();
+
+        generateCode(root, "", codes);
+
+        return codes;
+    }
+
+    private static void generateCode(Node node, String code, Map<Character, String> codes) {
+        if (node == null) {
+            return;
+        }
+
+        if (node.symbol != null) {
+            codes.put(node.symbol, code);
+        }
+
+        generateCode(node.left, code + "0", codes);
+        generateCode(node.right, code + "1", codes);
+    }
+
+    public static String encode(String text, Map<Character, String> codes) {
+        StringBuilder encodedText = new StringBuilder();
+
+        for (char character : text.toCharArray()) {
+            encodedText.append(codes.get(character));
+        }
+
+        return encodedText.toString();
+    }
+
+    public static String decode(String encodedText, Map<Character, String> codes) {
+        StringBuilder decodedText = new StringBuilder();
+        Node current = buildHuffmanTree(getSymbolFrequencies(codes));
+
+        StringBuilder currentCode = new StringBuilder();
+
+        for (char bit : encodedText.toCharArray()) {
+            currentCode.append(bit);
+
+            for (Map.Entry<Character, String> entry : codes.entrySet()) {
+                if (entry.getValue().equals(currentCode.toString())) {
+                    decodedText.append(entry.getKey());
+                    currentCode.setLength(0);
+                    break;
+                }
+            }
+        }
+
+        return decodedText.toString();
+    }
+
+    private static Map<Character, Integer> getSymbolFrequencies(Map<Character, String> codes) {
+        Map<Character, Integer> frequencies = new HashMap<>();
+
+        for (Map.Entry<Character, String> entry : codes.entrySet()) {
+            frequencies.put(entry.getKey(), entry.getValue().length());
+        }
+
+        return frequencies;
+    }
+
+    public static void main(String[] args) {
+        String text = "ABBCDBCCDAABBEEEBEAB";
+
+        Map<Character, Integer> symbols = new HashMap<>();
+        for (char character : text.toCharArray()) {
+ 
+            symbols.put(character, text.length() - text.replace(String.valueOf(character), "").length());
+        }
+
+        Node root = buildHuffmanTree(symbols);
+        Map<Character, String> codes = generateHuffmanCodes(root);
+
+        String encodedText = encode(text, codes);
+        String decodedText = decode(encodedText, codes);
+
+        System.out.println("Original Text: " + text);
+        System.out.println("Encoded Text: " + encodedText);
+        System.out.println("Decoded Text: " + decodedText);
+
+        assert text.equals(decodedText);
+    }
+}
